@@ -1,0 +1,20 @@
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod ./
+RUN if [ -f go.sum ]; then go mod download; fi
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o starter ./cmd/starter
+
+FROM alpine:3.18
+
+WORKDIR /root/
+
+COPY --from=builder /app/starter .
+
+EXPOSE 8080
+
+CMD ["./starter"]
